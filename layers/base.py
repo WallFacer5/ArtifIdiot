@@ -2,13 +2,16 @@ import numpy as np
 
 
 class Layer:
-    def __init__(self, input_layers=[]):
+    def __init__(self, input_layers=[], output_shape=0, use_bias=False, weights_initializer=np.zeros,
+                 bias_initializer=np.zeros):
         self.input_shapes = list(map(lambda l: l.get_output_shape(), input_layers))
         self.input_layers = input_layers
-        self.output_shape = 0
+        self.output_shape = output_shape
         self.output_layers = []
-        self.weights = np.array([])
-        self.delta = np.zeros(shape=[0])
+        self.weights = list(map(weights_initializer, zip(self.input_shapes, [output_shape] * len(input_layers))))
+        if use_bias:
+            self.bias = [bias_initializer(output_shape)] * len(self.weights)
+        self.delta = list(map(weights_initializer, zip(self.input_shapes, [output_shape] * len(input_layers))))
         self.cur_inputs = list(map(np.zeros, self.input_shapes))
         # pend
         self.starts = set()
@@ -41,4 +44,3 @@ class Layer:
 
     def backward(self):
         raise NotImplementedError
-
