@@ -5,14 +5,13 @@ class Layer:
     def __init__(self, input_layers=[], output_shape=0, use_bias=False, weights_initializer=np.zeros,
                  bias_initializer=np.zeros):
         self.input_shapes = list(map(lambda l: l.get_output_shape(), input_layers))
-        self.input_layers = input_layers
+        # self.input_layers = input_layers
+        self.input_layers = dict(map(lambda t: (t[1], t[0]), enumerate(input_layers)))
         self.output_shape = output_shape
-        self.output_layers = []
-        self.weights = list(map(weights_initializer, zip(self.input_shapes, [output_shape] * len(input_layers))))
-        if use_bias:
-            self.bias = [bias_initializer(output_shape)] * len(self.weights)
-        self.delta = list(map(weights_initializer, zip(self.input_shapes, [output_shape] * len(input_layers))))
-        self.cur_inputs = list(map(np.zeros, self.input_shapes))
+        self.output_layers = {}
+        self.cur_inputs = [[]] * len(input_layers)
+        self.cur_inputs_ready_flags = set()
+        self.cur_outputs = []
         # pend
         self.starts = set()
         if input_layers:
@@ -36,8 +35,16 @@ class Layer:
     def get_starts(self):
         return self.starts
 
+    def set_cur_input(self, _layer_ref, values):
+        self.cur_inputs[self.input_layers[_layer_ref]] = values
+        self.cur_inputs_ready_flags.add(self.input_layers[_layer_ref])
+
     def append_output_layer(self, _out_layer):
-        self.output_layers.append(_out_layer)
+        # self.output_layers.append(_out_layer)
+        self.output_layers[_out_layer] = len(self.output_layers)
+
+    def clear_cur_inputs_flags(self):
+        self.cur_inputs_ready_flags = set()
 
     def forward(self):
         raise NotImplementedError
