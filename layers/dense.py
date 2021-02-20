@@ -17,3 +17,13 @@ class Dense(Layer):
         self.cur_inputs[0] = np.append(self.cur_inputs[0], np.ones((len(self.cur_inputs[0]), 1)), axis=1)
         self.cur_outputs = np.matmul(self.cur_inputs, self.weights)
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
+        self.clear_cur_inputs_flags()
+
+    def backward(self):
+        # todo: filter inputs which are actually no need to go
+        mean_inputs = np.mean(self.cur_inputs, axis=0)
+        backward_delta = np.matmul(self.delta, np.transpose(self.weights))
+        list(map(lambda layer: layer.append_cur_delta(self, backward_delta), self.input_layers))
+        self.weights += np.matmul(np.transpose(mean_inputs), self.delta)
+        self.delta = np.zeros((self.input_shapes[0], self.output_shape))
+        self.clear_cur_deltas_flags()

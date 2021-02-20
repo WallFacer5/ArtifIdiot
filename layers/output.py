@@ -11,3 +11,8 @@ class Output(Layer):
 
     def forward(self):
         self.cur_outputs = self.cur_inputs[0]
+
+    def backward(self):
+        list(map(lambda layer: layer.append_cur_delta(self, self.delta), self.input_layers))
+        self.delta = np.zeros((self.input_shapes[0], self.output_shape))
+        self.clear_cur_deltas_flags()

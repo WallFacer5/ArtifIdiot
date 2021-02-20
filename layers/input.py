@@ -12,3 +12,6 @@ class Input(Layer):
 
     def forward(self):
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
+
+    def backward(self):
+        pass
