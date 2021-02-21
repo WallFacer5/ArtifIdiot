@@ -12,8 +12,8 @@ class Layer:
         self.cur_inputs = [[]] * len(input_layers)
         self.cur_inputs_ready_flags = set()
         self.cur_deltas_ready_flags = set()
+        self.cur_deltas = []
         self.cur_outputs = []
-        self.delta = None
         # pend
         self.starts = set()
         if input_layers:
@@ -42,7 +42,7 @@ class Layer:
         self.cur_inputs_ready_flags.add(self.input_layers[_layer_ref])
 
     def append_cur_delta(self, _layer_ref, values):
-        self.delta += values
+        self.cur_deltas.append(values)
         self.cur_deltas_ready_flags.add(self.output_layers[_layer_ref])
 
     def append_output_layer(self, _out_layer):
@@ -54,6 +54,7 @@ class Layer:
 
     def clear_cur_deltas_flags(self):
         self.cur_deltas_ready_flags = set()
+        self.cur_deltas = []
 
     def forward(self):
         raise NotImplementedError
@@ -67,6 +68,7 @@ class Layer:
             return True
         return False
 
+    @property
     def can_backward(self):
         if len(self.cur_deltas_ready_flags) == len(self.output_layers):
             return True
