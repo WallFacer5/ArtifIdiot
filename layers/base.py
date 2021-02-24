@@ -26,13 +26,13 @@ class Layer:
         return self.output_shape
 
     def get_output_layers(self):
-        return self.output_layers
+        return self.output_layers.keys()
 
     def get_input_shape(self):
         return self.input_shapes
 
     def get_input_layers(self):
-        return self.input_layers
+        return self.input_layers.keys()
 
     def get_starts(self):
         return self.starts

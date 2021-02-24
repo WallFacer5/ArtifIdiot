@@ -16,6 +16,7 @@ class Output(Layer):
 
     def forward(self):
         self.cur_outputs = self.cur_inputs[0]
+        self.clear_cur_inputs_flags()
 
     def backward(self):
         cur_loss, cur_delta = self.loss_function(self.cur_y_true, self.cur_outputs, self.learning_rate)
