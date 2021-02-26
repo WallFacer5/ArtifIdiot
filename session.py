@@ -1,3 +1,6 @@
+from constants import Directions
+
+
 def simple_run(pool, direction):
     def forward(f_pool):
         node_to_run = f_pool[0]
@@ -12,7 +15,7 @@ def simple_run(pool, direction):
         node_to_run.backward()
         b_pool.extend(list(filter(lambda il: il.can_backward, node_to_run.get_input_layers())))
         return b_pool
-    return forward(pool) if direction > 0 else backward(pool)
+    return forward(pool) if direction == Directions.forward else backward(pool)
 
 
 class Session:
@@ -33,12 +36,12 @@ class Session:
         list(map(lambda il: il.set_cur_input(batch_x), self.starts))
         list(map(lambda ol: ol.set_cur_y_true(batch_y), self.ends))
         while self.pool:
-            self.pool = self.run_algo(self.pool, direction=1)
+            self.pool = self.run_algo(self.pool, direction=Directions.forward)
         self.cur_pred.extend(self.ends[0].get_cur_outputs())
         if need_backward:
             self.pool = self.ends
             while self.pool:
-                self.pool = self.run_algo(self.pool, direction=-1)
+                self.pool = self.run_algo(self.pool, direction=Directions.backward)
 
     def train_epoch(self, batch_size=1, need_backward=True):
         count = len(self.x)

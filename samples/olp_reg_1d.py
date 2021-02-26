@@ -3,14 +3,16 @@ from layers.output import Output
 from layers.dense import Dense
 from losses import l2_loss
 from session import Session
+from activations import relu, sigmoid
 import numpy as np
+import matplotlib.pyplot as plt
 import random
 
 
 def main0(lr):
     il = Input(1)
-    dl1 = Dense([il], 8, use_bias=True)
-    dl2 = Dense([dl1], 1, use_bias=True)
+    dl1 = Dense([il], 8, use_bias=True, activation=relu)
+    dl2 = Dense([dl1], 1, use_bias=True, activation=relu)
     ol = Output([dl2], 1, loss_function=l2_loss, learning_rate=lr)
     inputs = np.array([[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0]])
     outputs = np.array(inputs) * 1.5 - 0.8
@@ -45,16 +47,20 @@ def main1(lr):
     return sess
 
 
-def main(lr):
-    il = Input(2)
-    dl1 = Dense([il], 8, use_bias=True)
-    dl2 = Dense([dl1], 1, use_bias=True)
-    ol = Output([dl2], 1, loss_function=l2_loss, learning_rate=lr)
-    inputs1 = np.array([[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0]])
-    inputs2 = np.array([[1.0], [2.0], [3.0], [4.0], [5.0], [6.0], [7.0], [8.0]])
-    inputs = np.append(inputs1, inputs2, axis=1)
-    outputs = np.array(inputs1) * 1.5 - np.array(inputs2) * 2.1 + 0.8
+def main(lr, epochs):
+    il = Input(1)
+    dl1 = Dense([il], 16, use_bias=True, activation=relu)
+    dl2 = Dense([dl1], 16, use_bias=True, activation=sigmoid)
+    dl3 = Dense([dl2], 1, use_bias=True)
+    ol = Output([dl3], 1, loss_function=l2_loss, learning_rate=lr)
+    inputs = np.linspace(-5, 5, 51).reshape([-1, 1])
+    # outputs = 2.3 * np.square(np.array(inputs)) - np.array(inputs) * 1.7 + 0.8
+    outputs = np.sin(inputs)
     sess = Session([ol], inputs, outputs)
+    sess.train(epochs)
+    plt.plot(sess.x, sess.y, color='blue', marker='o')
+    plt.plot(sess.x, sess.cur_pred, color='red', marker='*')
+    plt.show()
     return sess
 
 
