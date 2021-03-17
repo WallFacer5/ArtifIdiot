@@ -14,6 +14,7 @@ class Layer:
         self.cur_deltas_ready_flags = set()
         self.cur_deltas = []
         self.cur_outputs = []
+        self.use_bias = use_bias
         # pend
         self.starts = set()
         if input_layers:

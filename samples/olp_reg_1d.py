@@ -49,18 +49,32 @@ def main1(lr):
 
 def main(lr, epochs):
     il = Input(1)
-    dl1 = Dense([il], 16, use_bias=True, activation=relu)
+    dl1 = Dense([il], 16, use_bias=True)
     dl2 = Dense([dl1], 16, use_bias=True, activation=sigmoid)
     dl3 = Dense([dl2], 1, use_bias=True)
     ol = Output([dl3], 1, loss_function=l2_loss, learning_rate=lr)
     inputs = np.linspace(-5, 5, 51).reshape([-1, 1])
     # outputs = 2.3 * np.square(np.array(inputs)) - np.array(inputs) * 1.7 + 0.8
-    outputs = np.sin(inputs)
+    outputs = 1.5 * np.square(inputs) - 2.3 * inputs + 0.66
     sess = Session([ol], inputs, outputs)
     sess.train(epochs)
     plt.plot(sess.x, sess.y, color='blue', marker='o')
     plt.plot(sess.x, sess.cur_pred, color='red', marker='*')
     plt.show()
+    return sess
+
+
+def ass2_p2(lr, epochs):
+    il = Input(1)
+    dl1 = Dense([il], 3, weights_initializer=np.ones)
+    dl1.weights = np.array([[1, -1, 1]], dtype=np.float)
+    dl2 = Dense([dl1], 3, weights_initializer=np.zeros, activation=sigmoid)
+    dl2.weights = np.array([[1, 1, -1], [-1, 1, 1], [1, -1, -1]], dtype=np.float).transpose()
+    ol = Output([dl2], 3, loss_function=l2_loss, learning_rate=lr)
+    inputs = np.ones([1, 1])
+    outputs = np.zeros([1, 3])
+    sess = Session([ol], inputs, outputs)
+    sess.train(epochs)
     return sess
 
 

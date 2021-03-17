@@ -16,21 +16,29 @@ class Dense(Layer):
             self.delta = np.append(self.delta, [np.zeros(output_shape)], axis=0)
 
     def forward(self):
-        self.cur_inputs[0] = np.append(self.cur_inputs[0], np.ones((len(self.cur_inputs[0]), 1)), axis=1)
+        if self.use_bias:
+            self.cur_inputs[0] = np.append(self.cur_inputs[0], np.ones((len(self.cur_inputs[0]), 1)), axis=1)
         self.cur_outputs = np.matmul(self.cur_inputs[0], self.weights)
+        print('Forward values:\n{}'.format(np.array(self.cur_outputs)))
         if self.activation:
             self.before_activation = np.copy(self.cur_outputs)
             self.cur_outputs = self.activation(self.cur_outputs, Directions.forward)
+            print('Activated:\n{}'.format(np.array(self.cur_outputs)))
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
         self.clear_cur_inputs_flags()
 
     def backward(self):
         # todo: filter inputs which are actually no need to go
-        mean_inputs = np.mean(self.cur_inputs[0], axis=1)
+        mean_inputs = np.array([np.mean(self.cur_inputs[0], axis=0)])
         self.delta = np.sum(self.cur_deltas, axis=0)
         if self.activation:
+            print('Backward gradients:\n{}'.format(np.transpose(-self.delta)))
             self.delta = self.activation(self.before_activation, Directions.backward, self.delta)
-        backward_delta = np.matmul(self.delta, np.transpose(self.weights))[:, :-1]
+        print('Current gradients: \n{}'.format(np.transpose(-np.matmul(np.transpose(mean_inputs), self.delta))))
+        backward_delta = np.matmul(self.delta, np.transpose(self.weights))
+        print('Backward gradients:\n{}'.format(np.transpose(-self.delta)))
+        if self.use_bias:
+            backward_delta = backward_delta[:, :-1]
         list(map(lambda layer: layer.append_cur_delta(self, backward_delta), self.input_layers))
         self.weights += np.matmul(np.transpose(mean_inputs), self.delta)
         self.clear_cur_deltas_flags()
