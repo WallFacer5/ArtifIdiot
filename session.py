@@ -56,9 +56,9 @@ class Session:
         # print(self.y, self.cur_pred)
         return loss
 
-    def train(self, epochs):
+    def train(self, epochs, batch_size):
         for i in range(epochs):
-            loss = self.train_epoch()
+            loss = self.train_epoch(batch_size=batch_size)
             if i % 100 == 0:
                 print('epoch: {}; loss: {}.'.format(i, loss))
         print('epoch: {}; loss: {}.'.format(i, loss))

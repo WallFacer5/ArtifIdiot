@@ -3,7 +3,7 @@ from layers.output import Output
 from layers.dense import Dense
 from losses import l2_loss
 from session import Session
-from activations import relu, sigmoid
+from activations import relu, sigmoid, tanh
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -47,17 +47,18 @@ def main1(lr):
     return sess
 
 
-def main(lr, epochs):
+def main(lr, epochs, batch_size):
     il = Input(1)
     dl1 = Dense([il], 16, use_bias=True)
-    dl2 = Dense([dl1], 16, use_bias=True, activation=sigmoid)
+    dl2 = Dense([dl1], 16, use_bias=True, activation=tanh)
     dl3 = Dense([dl2], 1, use_bias=True)
     ol = Output([dl3], 1, loss_function=l2_loss, learning_rate=lr)
     inputs = np.linspace(-5, 5, 51).reshape([-1, 1])
     # outputs = 2.3 * np.square(np.array(inputs)) - np.array(inputs) * 1.7 + 0.8
-    outputs = 1.5 * np.square(inputs) - 2.3 * inputs + 0.66
+    # outputs = 1.5 * np.square(inputs) - 2.3 * inputs + 0.66
+    outputs = np.sin(inputs)
     sess = Session([ol], inputs, outputs)
-    sess.train(epochs)
+    sess.train(epochs, batch_size)
     plt.plot(sess.x, sess.y, color='blue', marker='o')
     plt.plot(sess.x, sess.cur_pred, color='red', marker='*')
     plt.show()

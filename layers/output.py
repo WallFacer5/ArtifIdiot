@@ -8,7 +8,7 @@ class Output(Layer):
         self.loss_function = loss_function
         self.cur_y_true = None
         self.learning_rate = learning_rate
-        self.delta = np.zeros(self.output_shape)
+        self.delta = np.zeros([0, self.output_shape])
         self.cur_loss = None
 
     def get_cur_outputs(self):
@@ -19,12 +19,9 @@ class Output(Layer):
         self.clear_cur_inputs_flags()
 
     def backward(self):
-        cur_loss, cur_delta = self.loss_function(self.cur_y_true, self.cur_outputs, self.learning_rate)
-        self.delta += cur_delta
-        self.cur_loss = cur_loss
-        list(map(lambda layer: layer.append_cur_delta(self, np.array([self.delta])), self.input_layers))
+        self.cur_loss, self.delta = self.loss_function(self.cur_y_true, self.cur_outputs, self.learning_rate)
+        list(map(lambda layer: layer.append_cur_delta(self, np.array(self.delta)), self.input_layers))
         self.clear_cur_deltas_flags()
-        self.delta = np.zeros(self.output_shape)
 
     def set_cur_y_true(self, y_values):
         self.cur_y_true = y_values
