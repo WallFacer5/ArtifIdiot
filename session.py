@@ -1,4 +1,5 @@
 from constants import Directions
+import numpy as np
 
 
 def simple_run(pool, direction):
@@ -19,13 +20,13 @@ def simple_run(pool, direction):
 
 
 class Session:
-    def __init__(self, ends, x, y, run_algo=simple_run):
+    def __init__(self, ends, train_x, train_y, test_x, test_y, run_algo=simple_run):
         self.ends = ends
         self.starts = set()
         list(map(lambda e: self.starts.update(e.get_starts()), ends))
         self.pool = []
         self.run_algo = run_algo
-        self.x, self.y = x, y
+        self.train_x, self.train_y = train_x, train_y
         self.cur_pred = []
 
     def get_pool(self):
@@ -44,21 +45,25 @@ class Session:
                 self.pool = self.run_algo(self.pool, direction=Directions.backward)
 
     def train_epoch(self, batch_size=1, need_backward=True):
-        count = len(self.x)
+        perm = np.random.permutation(self.train_x.shape[0])
+        epoch_x = self.train_x[perm]
+        epoch_y = self.train_y[perm]
+        count = len(self.train_x)
         self.cur_pred = []
         i = 0
         while i < count:
-            self.run_batch(self.x[i:i+batch_size], self.y[i:i+batch_size], need_backward)
+            # self.run_batch(self.train_x[perm[i:i+batch_size]], self.train_y[perm[i:i+batch_size]], need_backward)
+            self.run_batch(epoch_x[i:i + batch_size], epoch_y[i:i + batch_size], need_backward)
             i += batch_size
         # print(self.cur_pred)
-        # self.run_batch(self.x, self.y, need_backward=False)
-        loss, _ = self.ends[0].loss_function(self.y, self.cur_pred, 0)
-        # print(self.y, self.cur_pred)
-        return loss
+        # self.run_batch(self.train_x, self.train_y, need_backward=False)
+        loss, _, accuracy = self.ends[0].loss_function(epoch_y, self.cur_pred, 0)
+        # print(self.train_y, self.cur_pred)
+        return loss, accuracy
 
     def train(self, epochs, batch_size):
         for i in range(epochs):
-            loss = self.train_epoch(batch_size=batch_size)
-            if i % 100 == 0:
-                print('epoch: {}; loss: {}.'.format(i, loss))
-        print('epoch: {}; loss: {}.'.format(i, loss))
+            loss, accuracy = self.train_epoch(batch_size=batch_size)
+            if i % 1 == 0:
+                print('epoch: {}; loss: {}; accuracy: {}.'.format(i, loss, accuracy))
+        print('epoch: {}; loss: {}; accuracy: {}.'.format(i, loss, accuracy))

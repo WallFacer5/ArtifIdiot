@@ -1,7 +1,7 @@
 from layers.input import Input
 from layers.output import Output
 from layers.dense import Dense
-from losses import l2_loss
+from losses import l2_loss, softmax_cross_entropy
 from session import Session
 from activations import relu, sigmoid, tanh
 import numpy as np
@@ -65,6 +65,21 @@ def main(lr, epochs, batch_size):
     return sess
 
 
+def mlp_class(lr, epochs, batch_size):
+    il = Input(8)
+    dl1 = Dense([il], 8, use_bias=True, activation=relu)
+    dl2 = Dense([dl1], 2, use_bias=True)
+    ol = Output([dl2], 2, loss_function=softmax_cross_entropy, learning_rate=lr)
+    inputs = np.random.standard_normal([8, 8])
+    outputs = np.matmul(inputs, np.random.standard_normal([8, 1])) + np.random.standard_normal()
+    outputs[outputs <= 0] = 0
+    outputs[outputs > 0] = 0
+    outputs = outputs.astype(int)
+    sess = Session([ol], inputs, outputs)
+    sess.train(epochs, batch_size)
+    return sess
+
+
 def ass2_p2(lr, epochs):
     il = Input(1)
     dl1 = Dense([il], 3, weights_initializer=np.ones)
@@ -75,7 +90,7 @@ def ass2_p2(lr, epochs):
     inputs = np.ones([1, 1])
     outputs = np.zeros([1, 3])
     sess = Session([ol], inputs, outputs)
-    sess.train(epochs)
+    sess.train(epochs, 1)
     return sess
 
 
