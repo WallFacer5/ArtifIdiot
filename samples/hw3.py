@@ -19,6 +19,6 @@ def main(lr, epochs, batch_size):
     dl2 = Dense([dl1], 50, use_bias=True, activation=relu)
     dl3 = Dense([dl2], 10, use_bias=True)
     ol = Output([dl3], 10, loss_function=softmax_cross_entropy, learning_rate=lr)
-    sess = Session([ol], x_train, y_train)
+    sess = Session([ol], x_train, y_train, x_test, y_test)
     sess.train(epochs, batch_size)
     return sess

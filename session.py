@@ -1,5 +1,7 @@
 from constants import Directions
 import numpy as np
+import matplotlib.pyplot as plt
+import time
 
 
 def simple_run(pool, direction):
@@ -16,6 +18,7 @@ def simple_run(pool, direction):
         node_to_run.backward()
         b_pool.extend(list(filter(lambda il: il.can_backward, node_to_run.get_input_layers())))
         return b_pool
+
     return forward(pool) if direction == Directions.forward else backward(pool)
 
 
@@ -26,7 +29,7 @@ class Session:
         list(map(lambda e: self.starts.update(e.get_starts()), ends))
         self.pool = []
         self.run_algo = run_algo
-        self.train_x, self.train_y = train_x, train_y
+        self.train_x, self.train_y, self.test_x, self.test_y = train_x, train_y, test_x, test_y
         self.cur_pred = []
 
     def get_pool(self):
@@ -49,6 +52,7 @@ class Session:
         epoch_x = self.train_x[perm]
         epoch_y = self.train_y[perm]
         count = len(self.train_x)
+        start_time = time.time()
         self.cur_pred = []
         i = 0
         while i < count:
@@ -56,14 +60,47 @@ class Session:
             self.run_batch(epoch_x[i:i + batch_size], epoch_y[i:i + batch_size], need_backward)
             i += batch_size
         # print(self.cur_pred)
-        # self.run_batch(self.train_x, self.train_y, need_backward=False)
-        loss, _, accuracy = self.ends[0].loss_function(epoch_y, self.cur_pred, 0)
+        time_spent = time.time() - start_time
+        self.cur_pred = []
+        self.run_batch(self.train_x, self.train_y, need_backward=False)
+        train_loss, _, train_accuracy = self.ends[0].loss_function(self.train_y, self.cur_pred, 0)
+        self.cur_pred = []
+        self.run_batch(self.test_x, self.test_y, need_backward=False)
+        test_loss, _, test_accuracy = self.ends[0].loss_function(self.test_y, self.cur_pred, 0)
         # print(self.train_y, self.cur_pred)
-        return loss, accuracy
+        return train_loss, train_accuracy, test_loss, test_accuracy, time_spent
 
     def train(self, epochs, batch_size):
+        plot_x = np.array(range(epochs)) + 1
+        train_losses = []
+        train_accuracies = []
+        test_losses = []
+        test_accuracies = []
         for i in range(epochs):
-            loss, accuracy = self.train_epoch(batch_size=batch_size)
-            if i % 1 == 0:
-                print('epoch: {}; loss: {}; accuracy: {}.'.format(i, loss, accuracy))
-        print('epoch: {}; loss: {}; accuracy: {}.'.format(i, loss, accuracy))
+            train_loss, train_accuracy, test_loss, test_accuracy, time_spent = self.train_epoch(batch_size=batch_size)
+            print('Epoch {}:\ttime spent: {}s\nTrain loss: {};\taccuracy: {};\nTest loss: {};\taccuracy: {}.'.format(
+                i+1, '%.4f' % time_spent, train_loss, train_accuracy, test_loss, test_accuracy))
+            print()
+            train_losses.append(train_loss)
+            train_accuracies.append(train_accuracy)
+            test_losses.append(test_loss)
+            test_accuracies.append(test_accuracy)
+        train_loss, train_accuracy, test_loss, test_accuracy, time_spent = self.train_epoch(batch_size=batch_size,
+                                                                                            need_backward=False)
+        print('Final evaluate:\ttime spent: {}s\nTrain loss: {};\taccuracy: {};\nTest loss: {};\taccuracy: {}.'.format(
+            '%.4f' % time_spent, train_loss, train_accuracy, test_loss, test_accuracy))
+
+        plt.subplot(2, 1, 1)
+        p1, = plt.plot(plot_x, train_losses, color='blue', marker='o')
+        p2, = plt.plot(plot_x, test_losses, color='red', marker='*')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend([p1, p2], ['train', 'test'])
+        plt.subplot(2, 1, 2)
+        p3, = plt.plot(plot_x, train_accuracies, color='blue', marker='o')
+        p4, = plt.plot(plot_x, test_accuracies, color='red', marker='*')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend([p3, p4], ['train', 'test'])
+        plt.savefig('hw3_a.png')
+        plt.show()

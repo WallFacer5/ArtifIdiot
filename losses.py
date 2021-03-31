@@ -15,7 +15,7 @@ def softmax_cross_entropy(y_true, y_pred, learning_rate):
     # print('yt: {}, yp: {}'.format(y_true, y_pred))
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
-    y_pred -= np.max(y_pred)
+    # y_pred -= np.max(y_pred)
     exp_scores = np.exp(y_pred)
     sum_scores = np.sum(exp_scores, axis=1, keepdims=True)
     probs = exp_scores / sum_scores
