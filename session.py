@@ -61,9 +61,9 @@ class Session:
             i += batch_size
         # print(self.cur_pred)
         time_spent = time.time() - start_time
-        self.cur_pred = []
-        self.run_batch(self.train_x, self.train_y, need_backward=False)
-        train_loss, _, train_accuracy = self.ends[0].loss_function(self.train_y, self.cur_pred, 0)
+        # self.cur_pred = []
+        # self.run_batch(self.train_x, self.train_y, need_backward=False)
+        train_loss, _, train_accuracy = self.ends[0].loss_function(epoch_y, self.cur_pred, 0)
         self.cur_pred = []
         self.run_batch(self.test_x, self.test_y, need_backward=False)
         test_loss, _, test_accuracy = self.ends[0].loss_function(self.test_y, self.cur_pred, 0)
@@ -71,7 +71,6 @@ class Session:
         return train_loss, train_accuracy, test_loss, test_accuracy, time_spent
 
     def train(self, epochs, batch_size):
-        plot_x = np.array(range(epochs)) + 1
         train_losses = []
         train_accuracies = []
         test_losses = []
@@ -79,7 +78,7 @@ class Session:
         for i in range(epochs):
             train_loss, train_accuracy, test_loss, test_accuracy, time_spent = self.train_epoch(batch_size=batch_size)
             print('Epoch {}:\ttime spent: {}s\nTrain loss: {};\taccuracy: {};\nTest loss: {};\taccuracy: {}.'.format(
-                i+1, '%.4f' % time_spent, train_loss, train_accuracy, test_loss, test_accuracy))
+                i + 1, '%.4f' % time_spent, train_loss, train_accuracy, test_loss, test_accuracy))
             print()
             train_losses.append(train_loss)
             train_accuracies.append(train_accuracy)
@@ -89,18 +88,10 @@ class Session:
                                                                                             need_backward=False)
         print('Final evaluate:\ttime spent: {}s\nTrain loss: {};\taccuracy: {};\nTest loss: {};\taccuracy: {}.'.format(
             '%.4f' % time_spent, train_loss, train_accuracy, test_loss, test_accuracy))
-
-        plt.subplot(2, 1, 1)
-        p1, = plt.plot(plot_x, train_losses, color='blue', marker='o')
-        p2, = plt.plot(plot_x, test_losses, color='red', marker='*')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend([p1, p2], ['train', 'test'])
-        plt.subplot(2, 1, 2)
-        p3, = plt.plot(plot_x, train_accuracies, color='blue', marker='o')
-        p4, = plt.plot(plot_x, test_accuracies, color='red', marker='*')
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy')
-        plt.legend([p3, p4], ['train', 'test'])
-        plt.savefig('hw3_a.png')
-        plt.show()
+        history = {
+            'train_losses': train_losses[1:] + [train_loss],
+            'train_accuracies': train_accuracies[1:] + [train_accuracy],
+            'test_losses': test_losses,
+            'test_accuracies': test_accuracies
+        }
+        return history
