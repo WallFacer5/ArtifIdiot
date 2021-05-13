@@ -1,6 +1,8 @@
 from layers.input import Input
 from layers.output import Output
 from layers.dense import Dense
+from layers.conv2d import Conv2d
+from layers.max_pool2d import MaxPool2d
 from losses import l2_loss, softmax_cross_entropy
 from session import Session
 from activations import relu, sigmoid, tanh
@@ -89,9 +91,68 @@ def ass2_p2(lr, epochs):
     ol = Output([dl2], 3, loss_function=l2_loss, learning_rate=lr)
     inputs = np.ones([1, 1])
     outputs = np.zeros([1, 3])
-    sess = Session([ol], inputs, outputs)
+    sess = Session([ol], inputs, outputs, inputs, outputs)
     sess.train(epochs, 1)
     return sess
+
+
+def conv_test():
+    il = Input([5, 5, 1])
+    cl = Conv2d([il], 2, kernel_size=[3, 3], strides=[2, 2], use_bias=True)
+    v = np.array([[[1, 2, 3, 2, 1], [0, 1, 2, 1, 0], [1, 2, 3, 1, 0], [0, 1, 2, 0, 1], [1, 0, 0, 1, 2]],
+                  [[1, 2, 3, 2, 1], [0, 1, 2, 1, 0], [1, 2, 3, 1, 0], [0, 1, 2, 0, 1], [1, 0, 0, 1, 2]]]).reshape(
+        [2, 5, 5, 1])
+    cl.set_cur_input(il, v)
+    cl.forward()
+    # print(cl.filters)
+    # print(cl.biases)
+    ol = Output([cl], 8)
+    d = np.ones([2, 2, 2, 2])
+    cl.append_cur_delta(ol, d)
+    cl.backward()
+    # print(cl.filters)
+    # print(cl.biases)
+    return il, cl, ol, v, d
+
+
+def max_pool_test():
+    il = Input([6, 6, 1])
+    pl = MaxPool2d([il], [2, 2])
+    v = np.array([[[1, 2, 3, 2, 1, 2], [0, 1, 2, 1, 0, 3], [1, 2, 3, 1, 0, 1], [0, 1, 2, 0, 1, 1], [1, 0, 0, 1, 2, 0],
+                   [0, 1, 2, 0, 1, 1]],
+                  [[1, 2, 3, 2, 1, 1], [0, 1, 2, 1, 0, 2], [1, 2, 3, 1, 0, 3], [0, 1, 2, 0, 1, 3], [1, 0, 0, 1, 2, 0],
+                   [1, 2, 3, 2, 1, 1]]]).reshape([2, 6, 6, 1])
+    print(v.reshape([2, 6, 6]))
+    pl.set_cur_input(il, v)
+    pl.forward()
+    ol = Output([pl], 8)
+    d = np.ones([2, 3, 3, 1])
+    pl.append_cur_delta(ol, d)
+    pl.backward()
+    return il, pl, ol, v, d
+
+
+def cnn_test():
+    il = Input([6, 6, 1])
+    cl = Conv2d([il], 2, kernel_size=[3, 3], strides=[1, 1], use_bias=True)
+    pl = MaxPool2d([cl], [2, 2])
+    ol = Output([pl], 8)
+    v = np.array([[[1, 2, 3, 2, 1, 2], [0, 1, 2, 1, 0, 3], [1, 2, 3, 1, 0, 1], [0, 1, 2, 0, 1, 1], [1, 0, 0, 1, 2, 0],
+                   [0, 1, 2, 0, 1, 1]],
+                  [[1, 2, 3, 2, 1, 1], [0, 1, 2, 1, 0, 2], [1, 2, 3, 1, 0, 3], [0, 1, 2, 0, 1, 3], [1, 0, 0, 1, 2, 0],
+                   [1, 2, 3, 2, 1, 1]]]).reshape([2, 6, 6, 1])
+    cl.set_cur_input(il, v)
+    cl.forward()
+    pl.forward()
+    # print(cl.filters)
+    # print(cl.biases)
+    # print(cl.filters)
+    # print(cl.biases)
+    d = np.ones([2, 2, 2, 2])
+    pl.append_cur_delta(ol, d)
+    pl.backward()
+    cl.backward()
+    return il, cl, pl, ol, v, d
 
 
 if __name__ == '__main__':
