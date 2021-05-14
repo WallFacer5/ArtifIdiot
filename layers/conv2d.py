@@ -25,7 +25,7 @@ class Conv2d(Layer):
 
     @staticmethod
     @jit(nopython=True)
-    def in_forward(cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases, activation):
+    def in_forward(cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases):
         cur_outputs = np.zeros([cur_inputs[0].shape[0]] + output_shape)
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
@@ -36,10 +36,7 @@ class Conv2d(Layer):
                         cur_outputs[s][i][j][k] = np.sum(cur_value * f)
                         if use_bias:
                             cur_outputs[s][i][j][k] += biases[k]
-        if activation:
-            before_activation = np.copy(cur_outputs)
-            cur_outputs = activation(cur_outputs, Directions.forward)
-        return before_activation, cur_outputs
+        return cur_outputs
 
     def forward(self):
         '''
@@ -57,23 +54,21 @@ class Conv2d(Layer):
             self.before_activation = np.copy(self.cur_outputs)
             self.cur_outputs = self.activation(self.cur_outputs, Directions.forward)
         '''
-        self.before_activation, self.cur_outputs = self.in_forward(self.cur_inputs, self.output_shape, self.filters,
-                                                                   self.strides, self.kernel_size, self.use_bias,
-                                                                   self.biases, self.activation)
+        self.cur_outputs = self.in_forward(self.cur_inputs, self.output_shape, self.filters, self.strides,
+                                           self.kernel_size, self.use_bias, self.biases)
+        if self.activation:
+            self.before_activation = np.copy(self.cur_outputs)
+            self.cur_outputs = self.activation(self.cur_outputs, Directions.forward)
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
         self.clear_cur_inputs_flags()
 
     @staticmethod
     @jit(nopython=True)
-    def in_backward(cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases, activation, cur_deltas,
-                    before_activation):
-        delta = np.sum(cur_deltas, axis=0)
+    def in_backward(cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases, delta):
         dx = np.zeros(cur_inputs[0].shape)
         df = np.zeros_like(filters)
         if use_bias:
             db = np.zeros_like(biases)
-        if activation:
-            delta = activation(before_activation, Directions.backward, delta)
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
                 for k, f in enumerate(filters):
@@ -110,9 +105,11 @@ class Conv2d(Layer):
                                     j * self.strides[1]:j * self.strides[1] + self.kernel_size[1]]
                         df[k] += cur_value * delta[s, i, j, k]
         '''
+        delta = np.sum(self.cur_deltas, axis=0)
+        if self.activation:
+            delta = self.activation(self.before_activation, Directions.backward, delta)
         dx, df, db = self.in_forward(self.cur_inputs, self.output_shape, self.filters, self.strides, self.kernel_size,
-                                     self.use_bias, self.biases, self.activation, self.cur_deltas,
-                                     self.before_activation)
+                                     self.use_bias, self.biases, delta)
         list(map(lambda layer: layer.append_cur_delta(self, dx), self.input_layers))
         self.filters += df
         self.biases += db
