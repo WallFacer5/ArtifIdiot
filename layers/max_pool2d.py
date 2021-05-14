@@ -17,6 +17,7 @@ class MaxPool2d(Layer):
                 if cur_value[i, j] == max_val:
                     return max_val, i, j
 
+    @jit(nopython=True)
     def forward(self):
         self.cur_outputs = np.zeros([self.cur_inputs[0].shape[0]] + self.output_shape)
         self.max_flags = np.zeros([self.cur_inputs[0].shape[0]] + self.input_shapes[0])
@@ -33,6 +34,7 @@ class MaxPool2d(Layer):
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
         self.clear_cur_inputs_flags()
 
+    @jit(nopython=True)
     def backward(self):
         delta = np.zeros_like(self.cur_inputs[0], dtype='float64')
         # print(np.array(self.cur_deltas).shape)

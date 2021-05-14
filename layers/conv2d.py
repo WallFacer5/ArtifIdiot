@@ -22,6 +22,7 @@ class Conv2d(Layer):
         if self.use_bias:
             self.biases = bias_initializer(num_filters)
 
+    @jit(nopython=True)
     def forward(self):
         self.cur_outputs = np.zeros([self.cur_inputs[0].shape[0]] + self.output_shape)
         for i in range(self.output_shape[0]):
@@ -39,6 +40,7 @@ class Conv2d(Layer):
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
         self.clear_cur_inputs_flags()
 
+    @jit(nopython=True)
     def backward(self):
         delta = np.sum(self.cur_deltas, axis=0)
         dx = np.zeros(self.cur_inputs[0].shape)
