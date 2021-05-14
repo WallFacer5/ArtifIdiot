@@ -74,7 +74,8 @@ class Conv2d(Layer):
                         j * strides[1]:j * strides[1] + kernel_size[1]] += \
                             f * delta[s, i, j, k]
                         if use_bias:
-                            db[k] += np.sum(delta[s, i, j, k])
+                            for dd in delta[s, i, j, k]:
+                                db[k] += dd
                         cur_value = cur_inputs[0][s, i * strides[0]:i * strides[0] + kernel_size[0],
                                     j * strides[1]:j * strides[1] + kernel_size[1]]
                         df[k] += cur_value * delta[s, i, j, k]
