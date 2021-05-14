@@ -33,6 +33,9 @@ class Conv2d(Layer):
                         self.cur_outputs[s][i][j][k] = np.sum(cur_value * f)
                         if self.use_bias:
                             self.cur_outputs[s][i][j][k] += self.biases[k]
+        if self.activation:
+            self.before_activation = np.copy(self.cur_outputs)
+            self.cur_outputs = self.activation(self.cur_outputs, Directions.forward)
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
         self.clear_cur_inputs_flags()
 
@@ -42,6 +45,8 @@ class Conv2d(Layer):
         df = np.zeros_like(self.filters)
         if self.use_bias:
             db = np.zeros_like(self.biases)
+        if self.activation:
+            delta = self.activation(self.before_activation, Directions.backward, delta)
         for i in range(self.output_shape[0]):
             for j in range(self.output_shape[1]):
                 for k, f in enumerate(self.filters):
