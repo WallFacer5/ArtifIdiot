@@ -49,8 +49,8 @@ class MaxPool2d(Layer):
                         self.cur_outputs[s, i, j, k] = max_val
                         self.max_flags[s, i * self.pool_size[0] + max_i, j * self.pool_size[1] + max_j, k] = 1
         '''
-        cur_outputs = np.zeros([self.cur_input.shape[0]] + self.output_shape)
-        max_flags = np.zeros([self.cur_input.shape[0]] + self.input_shapes[0])
+        cur_outputs = np.zeros([self.cur_inputs[0].shape[0]] + self.output_shape)
+        max_flags = np.zeros([self.cur_inputs[0].shape[0]] + self.input_shapes[0])
         self.cur_outputs, self.max_flags = self.in_forward(self.output_shape, cur_outputs, max_flags, self.pool_size,
                                                            self.cur_inputs[0])
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
