@@ -3,6 +3,7 @@ from layers.output import Output
 from layers.dense import Dense
 from layers.conv2d import Conv2d
 from layers.max_pool2d import MaxPool2d
+from layers.flatten import Flatten
 from losses import l2_loss, softmax_cross_entropy
 from session import Session
 from activations import relu, sigmoid, tanh
@@ -134,9 +135,10 @@ def max_pool_test():
 
 def cnn_test():
     il = Input([6, 6, 1])
-    cl = Conv2d([il], 2, kernel_size=[3, 3], strides=[1, 1], use_bias=True)
+    cl = Conv2d([il], 2, kernel_size=[3, 3], strides=[1, 1], use_bias=True, activation=relu)
     pl = MaxPool2d([cl], [2, 2])
-    ol = Output([pl], 8)
+    fl = Flatten([pl])
+    ol = Output([fl], 8)
     v = np.array([[[1, 2, 3, 2, 1, 2], [0, 1, 2, 1, 0, 3], [1, 2, 3, 1, 0, 1], [0, 1, 2, 0, 1, 1], [1, 0, 0, 1, 2, 0],
                    [0, 1, 2, 0, 1, 1]],
                   [[1, 2, 3, 2, 1, 1], [0, 1, 2, 1, 0, 2], [1, 2, 3, 1, 0, 3], [0, 1, 2, 0, 1, 3], [1, 0, 0, 1, 2, 0],
@@ -144,15 +146,17 @@ def cnn_test():
     cl.set_cur_input(il, v)
     cl.forward()
     pl.forward()
+    fl.forward()
     # print(cl.filters)
     # print(cl.biases)
     # print(cl.filters)
     # print(cl.biases)
-    d = np.ones([2, 2, 2, 2])
-    pl.append_cur_delta(ol, d)
+    d = np.ones([2, 8])
+    fl.append_cur_delta(ol, d)
+    fl.backward()
     pl.backward()
     cl.backward()
-    return il, cl, pl, ol, v, d
+    return il, cl, pl, fl, ol, v, d
 
 
 if __name__ == '__main__':

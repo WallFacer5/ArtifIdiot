@@ -36,7 +36,7 @@ class Dense(Layer):
         if self.activation:
             # print('Backward gradients:\n{}'.format(np.transpose(-self.delta)))
             self.delta = self.activation(self.before_activation, Directions.backward, self.delta)
-        # print('Current gradients: \n{}'.format(np.transpose(-np.matmul(np.transpose(self.cur_inputs[0]), self.delta))))
+        # print('Current gradients:\n{}'.format(np.transpose(-np.matmul(np.transpose(self.cur_inputs[0]), self.delta))))
         backward_delta = np.matmul(self.delta, np.transpose(self.weights))
         # print('Backward gradients:\n{}'.format(np.transpose(-self.delta)))
         if self.use_bias:

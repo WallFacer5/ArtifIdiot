@@ -1,6 +1,5 @@
 import numpy as np
 from layers.base import Layer
-from constants import Directions
 
 
 class MaxPool2d(Layer):
@@ -36,7 +35,7 @@ class MaxPool2d(Layer):
 
     def backward(self):
         delta = np.zeros_like(self.cur_inputs[0], dtype='float64')
-        print(np.array(self.cur_deltas).shape)
+        # print(np.array(self.cur_deltas).shape)
         for i in range(self.output_shape[0]):
             for j in range(self.output_shape[1]):
                 for s in range(self.cur_inputs[0].shape[0]):
@@ -44,6 +43,6 @@ class MaxPool2d(Layer):
                         delta[s, i * self.pool_size[0]:i * self.pool_size[0] + self.pool_size[0],
                             j * self.pool_size[1]:j * self.pool_size[1] + self.pool_size[1], k] += self.cur_deltas[0][
                             s][i][j][k]
-        print(delta * self.max_flags)
+        # print(delta * self.max_flags)
         list(map(lambda layer: layer.append_cur_delta(self, delta * self.max_flags), self.input_layers))
         self.clear_cur_deltas_flags()
