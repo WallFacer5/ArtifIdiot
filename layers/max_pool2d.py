@@ -1,5 +1,6 @@
 import numpy as np
 from layers.base import Layer
+from numba import jit
 
 
 class MaxPool2d(Layer):

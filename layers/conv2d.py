@@ -1,6 +1,7 @@
 import numpy as np
 from layers.base import Layer
 from constants import Directions
+from numba import jit
 
 
 class Conv2d(Layer):
