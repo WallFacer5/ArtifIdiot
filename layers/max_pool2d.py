@@ -12,7 +12,7 @@ class MaxPool2d(Layer):
 
     @staticmethod
     @jit(nopython=True)
-    def in_forward(output_shape, input_shapes, pool_size, cur_input):
+    def in_forward(output_shape, cur_outputs, max_flags, pool_size, cur_input):
         def get_max(_cur_value):
             max_val = np.max(_cur_value)
             for i in range(_cur_value.shape[0]):
@@ -20,8 +20,8 @@ class MaxPool2d(Layer):
                     if _cur_value[i, j] == max_val:
                         return max_val, i, j
 
-        cur_outputs = np.zeros([cur_input.shape[0]] + output_shape)
-        max_flags = np.zeros([cur_input.shape[0]] + input_shapes[0])
+        # cur_outputs = np.zeros([cur_input.shape[0]] + output_shape)
+        # max_flags = np.zeros([cur_input.shape[0]] + input_shapes[0])
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
                 for s in range(cur_input.shape[0]):
@@ -49,15 +49,17 @@ class MaxPool2d(Layer):
                         self.cur_outputs[s, i, j, k] = max_val
                         self.max_flags[s, i * self.pool_size[0] + max_i, j * self.pool_size[1] + max_j, k] = 1
         '''
-        self.cur_outputs, self.max_flags = self.in_forward(self.output_shape, self.input_shapes, self.pool_size,
+        cur_outputs = np.zeros([self.cur_input.shape[0]] + self.output_shape)
+        max_flags = np.zeros([self.cur_input.shape[0]] + self.input_shapes[0])
+        self.cur_outputs, self.max_flags = self.in_forward(self.output_shape, cur_outputs, max_flags, self.pool_size,
                                                            self.cur_inputs[0])
         list(map(lambda ol: ol.set_cur_input(self, self.cur_outputs), self.output_layers.keys()))
         self.clear_cur_inputs_flags()
 
     @staticmethod
     @jit(nopython=True)
-    def in_backward(cur_inputs, output_shape, pool_size, max_flags, cur_deltas):
-        delta = np.zeros_like(cur_inputs[0], dtype='float64')
+    def in_backward(delta, cur_inputs, output_shape, pool_size, max_flags, cur_deltas):
+        # delta = np.zeros_like(cur_inputs[0], dtype='float64')
         # print(np.array(self.cur_deltas).shape)
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
@@ -81,7 +83,9 @@ class MaxPool2d(Layer):
                             s][i][j][k]
         # print(delta * self.max_flags)
         '''
-        delta = self.in_backward(self.cur_inputs, self.output_shape, self.pool_size, self.max_flags, self.cur_deltas)
+        delta = np.zeros_like(self.cur_inputs[0], dtype='float64')
+        delta = self.in_backward(delta, self.cur_inputs, self.output_shape, self.pool_size, self.max_flags,
+                                 self.cur_deltas)
         # list(map(lambda layer: layer.append_cur_delta(self, delta * self.max_flags), self.input_layers))
         list(map(lambda layer: layer.append_cur_delta(self, delta), self.input_layers))
         self.clear_cur_deltas_flags()
