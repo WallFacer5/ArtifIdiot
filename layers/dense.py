@@ -8,11 +8,11 @@ class Dense(Layer):
                  weights_initializer=np.random.standard_normal,
                  bias_initializer=np.zeros):
         super().__init__(input_layers, output_shape, use_bias, weights_initializer, bias_initializer)
-        self.weights = weights_initializer((self.input_shapes[0], self.output_shape)) / 100
+        self.weights = weights_initializer((self.input_shapes[0], self.output_shape)) / 10
         self.delta = np.zeros((self.input_shapes[0], self.output_shape))
         self.activation = activation
         if use_bias:
-            self.weights = np.append(self.weights, [bias_initializer(output_shape)], axis=0) / 100
+            self.weights = np.append(self.weights, [bias_initializer(output_shape)], axis=0) / 10
             self.delta = np.append(self.delta, [np.zeros(output_shape)], axis=0)
 
     def forward(self):
