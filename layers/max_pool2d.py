@@ -1,6 +1,6 @@
 import numpy as np
 from layers.base import Layer
-from numba import jit
+# from numba import jit
 
 
 class MaxPool2d(Layer):
@@ -11,7 +11,7 @@ class MaxPool2d(Layer):
         self.output_shape = [input_shape[0] // pool_size[0], input_shape[1] // pool_size[1], input_shape[2]]
 
     @staticmethod
-    @jit(nopython=True)
+    # @jit(nopython=True)
     def in_forward(output_shape, input_shapes, pool_size, cur_input):
         def get_max(_cur_value):
             max_val = np.max(_cur_value)
@@ -55,7 +55,7 @@ class MaxPool2d(Layer):
         self.clear_cur_inputs_flags()
 
     @staticmethod
-    @jit(nopython=True)
+    # @jit(nopython=True)
     def in_backward(cur_inputs, output_shape, pool_size, max_flags, cur_deltas):
         delta = np.zeros_like(cur_inputs[0], dtype='float64')
         # print(np.array(self.cur_deltas).shape)

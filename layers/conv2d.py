@@ -1,7 +1,9 @@
 import numpy as np
 from layers.base import Layer
 from constants import Directions
-from numba import jit
+
+
+# from numba import jit
 
 
 class Conv2d(Layer):
@@ -24,9 +26,8 @@ class Conv2d(Layer):
             self.biases = bias_initializer(num_filters)
 
     @staticmethod
-    @jit(nopython=True)
-    def in_forward(cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases):
-        cur_outputs = np.zeros([cur_inputs[0].shape[0]] + output_shape)
+    # @jit(nopython=True)
+    def in_forward(cur_outputs, cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases):
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
                 for k, f in enumerate(filters):
@@ -54,7 +55,9 @@ class Conv2d(Layer):
             self.before_activation = np.copy(self.cur_outputs)
             self.cur_outputs = self.activation(self.cur_outputs, Directions.forward)
         '''
-        self.cur_outputs = self.in_forward(self.cur_inputs, self.output_shape, self.filters, self.strides,
+
+        cur_outputs = np.zeros([self.cur_inputs[0].shape[0]] + self.output_shape)
+        self.cur_outputs = self.in_forward(cur_outputs, self.cur_inputs, self.output_shape, self.filters, self.strides,
                                            self.kernel_size, self.use_bias, self.biases)
         if self.activation:
             self.before_activation = np.copy(self.cur_outputs)
@@ -63,12 +66,8 @@ class Conv2d(Layer):
         self.clear_cur_inputs_flags()
 
     @staticmethod
-    @jit(nopython=True)
-    def in_backward(cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases, delta):
-        dx = np.zeros(cur_inputs[0].shape)
-        df = np.zeros_like(filters)
-        if use_bias:
-            db = np.zeros_like(biases)
+    # @jit(nopython=True)
+    def in_backward(dx, df, db, cur_inputs, output_shape, filters, strides, kernel_size, use_bias, delta):
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
                 for k, f in enumerate(filters):
@@ -105,11 +104,15 @@ class Conv2d(Layer):
                                     j * self.strides[1]:j * self.strides[1] + self.kernel_size[1]]
                         df[k] += cur_value * delta[s, i, j, k]
         '''
+        dx = np.zeros(self.cur_inputs[0].shape)
+        df = np.zeros_like(self.filters)
+        if self.use_bias:
+            db = np.zeros_like(self.biases)
         delta = np.sum(self.cur_deltas, axis=0)
         if self.activation:
             delta = self.activation(self.before_activation, Directions.backward, delta)
-        dx, df, db = self.in_forward(self.cur_inputs, self.output_shape, self.filters, self.strides, self.kernel_size,
-                                     self.use_bias, self.biases, delta)
+        dx, df, db = self.in_backward(dx, df, db, self.cur_inputs, self.output_shape, self.filters, self.strides,
+                                      self.kernel_size, self.use_bias, delta)
         list(map(lambda layer: layer.append_cur_delta(self, dx), self.input_layers))
         self.filters += df
         self.biases += db
