@@ -1,9 +1,7 @@
 import numpy as np
 from layers.base import Layer
 from constants import Directions
-
-
-# from numba import jit
+from numba import jit
 
 
 class Conv2d(Layer):
@@ -26,7 +24,7 @@ class Conv2d(Layer):
             self.biases = bias_initializer(num_filters)
 
     @staticmethod
-    # @jit(nopython=True)
+    @jit(nopython=True)
     def in_forward(cur_outputs, cur_inputs, output_shape, filters, strides, kernel_size, use_bias, biases):
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
@@ -66,7 +64,7 @@ class Conv2d(Layer):
         self.clear_cur_inputs_flags()
 
     @staticmethod
-    # @jit(nopython=True)
+    @jit(nopython=True)
     def in_backward(dx, df, db, cur_inputs, output_shape, filters, strides, kernel_size, use_bias, delta):
         for i in range(output_shape[0]):
             for j in range(output_shape[1]):
