@@ -10,8 +10,9 @@ from session import Session
 from activations import relu
 import numpy as np
 import matplotlib.pyplot as plt
-import tensorflow as tf
-import time
+# import tensorflow as tf
+# import time
+import pickle as pkl
 
 
 def plot_metrics(epochs, train_losses, train_accuracies, test_losses, test_accuracies, png_name):
@@ -35,11 +36,11 @@ def plot_metrics(epochs, train_losses, train_accuracies, test_losses, test_accur
 def lenet(lr, epochs, batch_size):
     x_train, y_train, x_test, y_test = load()
     x_train = x_train.astype(float) / 255
-    x_train = x_train.reshape([-1, 28, 28, 1])[:800]
-    y_train = y_train.reshape([-1, 1])[:800]
+    x_train = x_train.reshape([-1, 28, 28, 1])
+    y_train = y_train.reshape([-1, 1])
     x_test = x_test.astype(float) / 255
-    x_test = x_test.reshape([-1, 28, 28, 1])[:100]
-    y_test = y_test.reshape([-1, 1])[:100]
+    x_test = x_test.reshape([-1, 28, 28, 1])
+    y_test = y_test.reshape([-1, 1])
 
     il = Input([28, 28, 1])
     cl1 = Conv2d([il], 6, kernel_size=[5, 5], strides=[1, 1], use_bias=True, activation=relu)
@@ -87,6 +88,7 @@ def cnn(lr, epochs, batch_size):
     return sess, history
 
 
+'''
 def lenet_(lr, epochs, batch_size):
     x_train, y_train, x_test, y_test = load()
     x_train = x_train.astype(float) / 255
@@ -125,4 +127,9 @@ def lenet_(lr, epochs, batch_size):
     train_losses.append(eval_his[0])
     train_accuracies.append(eval_his[1])
     plot_metrics(epochs, train_losses, train_accuracies, test_losses, test_accuracies, 'final_tf')
+'''
 
+
+if __name__ == '__main__':
+    sess, his = lenet(5e-3, 10, 256)
+    pkl.dump([sess, his], open('sess_his.pkl', 'wb'))
